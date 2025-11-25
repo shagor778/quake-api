@@ -7,7 +7,7 @@ app = Flask(__name__)
 # ================= চাবি বসান (উদ্ধৃতি চিহ্ন "" সহ) =================
 # আপনার ড্যাশবোর্ড থেকে মিলিয়ে সঠিক চাবি বসান
 ONESIGNAL_APP_ID = "1026e9bb-84db-462c-b129-39ed16c65790"
-ONESIGNAL_API_KEY = "os_v2_app_catoto4e3ndczmjjhhwrnrsxsc3d2axi2mrud2vxzb7w6nbyurc6rthxi53zrz5wghg5m3lw527vd4oysombvktdpezktzfuyenj5qi"
+ONESIGNAL_API_KEY = "os_v2_app_catoto4e3ndczmjjhhwrnrsxsannaetl6wfuf4fvgpdwzrdt2e4ecetoksmgvbqdiwyhf6z4k46mnhyi2d5e2b6xbedb4per2sjwvuq"
 # =============================================================
 
 USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson"
@@ -110,4 +110,5 @@ def send_notification(place, mag, lat, lon):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
+
 
