@@ -84,5 +84,17 @@ def send_notification(place, mag):
     }
     requests.post("https://onesignal.com/api/v1/notifications", json=payload, headers=headers)
 
+# ... আগের কোড ...
+
+# ম্যানুয়াল টেস্ট লিংক (জোর করে নোটিফিকেশন পাঠানোর জন্য)
+@app.route('/test-alert')
+def test_alert():
+    # এখানে আমরা একটি নকল ভূমিকম্পের তথ্য দিয়ে নোটিফিকেশন পাঠাচ্ছি
+    send_notification("TEST: Dhaka, Bangladesh", 6.5, 23.81, 90.41)
+    return jsonify({"status": "Test Alert Sent!", "message": "Check your phone now!"})
+
+# ... if __name__ == '__main__': ... (নিচের অংশ আগের মতোই থাকবে)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
+
