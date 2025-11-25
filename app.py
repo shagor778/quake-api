@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # ================= চাবি বসান (উদ্ধৃতি চিহ্ন "" সহ) =================
 # আপনার ড্যাশবোর্ড থেকে মিলিয়ে সঠিক চাবি বসান
-ONESIGNAL_APP_ID = "1026e9bb-84db-462c-b129-39ed16c65790"
+ONESIGNAL_APP_ID = "fc65adcd-039a-418a-bccd-c78866763532"
 ONESIGNAL_API_KEY = "vpajrakyju7qune4by2tqta7y"
 # =============================================================
 
@@ -110,6 +110,7 @@ def send_notification(place, mag, lat, lon):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
+
 
 
 
