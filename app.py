@@ -6,8 +6,7 @@ app = Flask(__name__)
 
 # ================= চাবি বসান =================
 ONESIGNAL_APP_ID = "1026e9bb-84db-462c-b129-39ed16c65790"
-ONESIGNAL_API_KEY = "os_v2_app_catoto4e3ndczmjjhhwrnrsxsdjdyitivmde5s4p3ceaaqdxe6ace7oztu2ipcernmi5kdaj4l43zoewlk7i7a3vgzhgohha5ox3ckq
-cornjob//175"
+ONESIGNAL_API_KEY = "os_v2_app_catoto4e3ndczmjjhhwrnrsxsdjdyitivmde5s4p3ceaaqdxe6ace7oztu2ipcernmi5kdaj4l43zoewlk7i7a3vgzhgohha5ox3ckqcornjob//175"
 # ==========================================
 
 USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson"
@@ -101,3 +100,4 @@ def send_notification(place, mag, lat, lon):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
+
