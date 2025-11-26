@@ -3,35 +3,40 @@ import json
 import requests
 from flask import Flask, jsonify
 import firebase_admin
-from firebase_admin import credentials, messaging
+from firebase_admin import credentials, messaging, db # db ইম্পোর্ট করা হলো
 
 app = Flask(__name__)
 
-# ================= সিকিউর কানেকশন (Render ENV থেকে) =================
-# আমরা Render এর 'Environment Variable' থেকে চাবি নিব
+# ================= সিকিউর কানেকশন =================
 firebase_config_str = os.environ.get('FIREBASE_CREDENTIALS')
 
+# আপনার ডাটাবেস লিংক (অবশ্যই আপনারটা বসাবেন)
+# উদাহরণ: https://earthquakealert-xxxxx.firebaseio.com/
+DATABASE_URL = "https://earthquakealert-30dd7-default-rtdb.firebaseio.com/" 
+
 if firebase_config_str:
-    # স্ট্রিং থেকে JSON এ কনভার্ট করা
     cred_dict = json.loads(firebase_config_str)
     if not firebase_admin._apps:
         cred = credentials.Certificate(cred_dict)
-        firebase_admin.initialize_app(cred)
-# =================================================================
+        # ডাটাবেস URL সহ ইনিশিলাইজ করা
+        firebase_admin.initialize_app(cred, {
+            'databaseURL': DATABASE_URL
+        })
+# ================================================
 
+# ৭ দিনের ডাটা (4.5+ মাত্রা)
 USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson"
 last_processed_id = None
 
 @app.route('/')
 def home():
-    return "FCM Server is Running!"
+    return "Server is Running & Syncing Data!"
 
-# ১. টেস্ট রুট (ম্যানুয়াল চেক করার জন্য)
 @app.route('/test-alert')
 def test_alert():
-    return send_fcm_alert("TEST: Dhaka, Bangladesh", 6.5)
+    return send_fcm_alert("TEST: Dhaka", 6.5)
 
-# ২. অটোমেশন রুট (Cron Job এর জন্য)
+# অটোমেশন রুট (Cron Job এটা চালাবে)
 @app.route('/check-alert')
 def check_and_notify():
     global last_processed_id
@@ -40,37 +45,50 @@ def check_and_notify():
         response = requests.get(USGS_URL)
         data = response.json()
         
+        formatted_list = []
+        
         if "features" in data and len(data["features"]) > 0:
-            latest = data["features"][0]
-            props = latest["properties"]
-            
-            current_id = latest["id"]
-            place = props["place"]
-            mag = props["mag"]
+            # ১. লুপ চালিয়ে ডাটা সাজানো (ম্যাপের জন্য)
+            for q in data["features"]:
+                props = q["properties"]
+                geo = q["geometry"]["coordinates"]
+                
+                model = {
+                    "place": props["place"],
+                    "magnitude": props["mag"],
+                    "time": props["time"],
+                    "depth": geo[2],
+                    "lat": geo[1],
+                    "lon": geo[0]
+                }
+                formatted_list.append(model)
 
-            # প্রথমবার সার্ভার চালু হলে নোটিফিকেশন যাবে না
+            # ২. ফায়ারবেসে পুরো ডাটা সেভ করা (এই লাইনটি আগে মিসিং ছিল)
+            ref = db.reference('latest_quakes')
+            ref.set(formatted_list)
+
+            # ৩. নোটিফিকেশন লজিক (লেটেস্ট ভূমিকম্পের জন্য)
+            latest = data["features"][0]
+            current_id = latest["id"]
+            
             if last_processed_id is None:
                 last_processed_id = current_id
-                return jsonify({"status": "Initialized", "id": current_id})
+                return jsonify({"status": "Initialized & Data Synced", "count": len(formatted_list)})
 
-            # নতুন ভূমিকম্প এবং মাত্রা ৪.৫ এর বেশি হলে
             if current_id != last_processed_id:
                 last_processed_id = current_id
+                if latest["properties"]["mag"] >= 4.5:
+                    send_fcm_alert(latest["properties"]["place"], latest["properties"]["mag"])
                 
-                if mag >= 4.5:
-                    return send_fcm_alert(place, mag)
-                
-            return jsonify({"status": "No new earthquake"})
+            return jsonify({"status": "Data Synced", "count": len(formatted_list)})
             
     except Exception as e:
         return jsonify({"error": str(e)})
     
     return jsonify({"status": "No data"})
 
-# ৩. নোটিফিকেশন ফাংশন
 def send_fcm_alert(place, mag):
     try:
-        # 'earthquakes' টপিকের সবাইকে মেসেজ পাঠাবে
         message = messaging.Message(
             topic='earthquakes',
             notification=messaging.Notification(
@@ -84,10 +102,9 @@ def send_fcm_alert(place, mag):
             }
         )
         response = messaging.send(message)
-        return jsonify({"status": "Alert Sent via FCM!", "response": response})
+        return jsonify({"status": "Alert Sent!", "response": response})
     except Exception as e:
         return jsonify({"error": str(e)})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
-
