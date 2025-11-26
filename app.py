@@ -19,7 +19,7 @@ if firebase_config_str:
         firebase_admin.initialize_app(cred)
 # =================================================================
 
-USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson"
+USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson"
 last_processed_id = None
 
 @app.route('/')
@@ -90,3 +90,4 @@ def send_fcm_alert(place, mag):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
+
