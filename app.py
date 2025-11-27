@@ -87,25 +87,30 @@ def check_and_notify():
     
     return jsonify({"status": "No data"})
 
-def send_fcm_alert(place, mag):
+def send_fcm_alert(place, mag, lat, lon):
     try:
+        # আমরা 'notification' অংশটি বাদ দিয়েছি, শুধু 'data' পাঠাচ্ছি
+        # এতে অ্যাপ ব্যাকগ্রাউন্ডে থাকলেও আমাদের লজিক কাজ করবে
         message = messaging.Message(
             topic='earthquakes',
-            notification=messaging.Notification(
-                title='⚠️ Earthquake Alert!',
-                body=f'Magnitude {mag} detected at {place}',
-            ),
             data={
+                'title': '⚠️ Earthquake Alert!',
                 'place': place,
                 'mag': str(mag),
-                'click_action': 'FLUTTER_NOTIFICATION_CLICK'
-            }
+                'lat': str(lat),
+                'lon': str(lon),
+                'type': 'alert'
+            },
+            android=messaging.AndroidConfig(
+                priority='high' # হাই প্রয়োরিটি যাতে স্লিপ মোডেও কাজ করে
+            )
         )
         response = messaging.send(message)
-        return jsonify({"status": "Alert Sent!", "response": response})
+        return jsonify({"status": "Alert Sent via FCM (Data Only)!", "response": response})
     except Exception as e:
         return jsonify({"error": str(e)})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
+
 
